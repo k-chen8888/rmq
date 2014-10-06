@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "rmq.h"
+
 
 /* Build a Range Query table (effective RQTable constructor)
  * 0 == min, 1 == max
@@ -25,7 +27,7 @@ RQTable* rq_table(int* list, int list_len, int mode) {
 	}
 	
 	/* Generate table in O(n \log n) time */
-	out->table = (int**)calloc(tbl_height, sizeof(int*));
+	out->table = (int**)calloc(out->height, sizeof(int*));
 	/* Allocate space for every row */
 	for(i = 0; i < out->height; i++) {
 		out->table[i] = (int*)calloc(out->width[i], sizeof(int));
@@ -36,10 +38,11 @@ RQTable* rq_table(int* list, int list_len, int mode) {
 	for(i = 0; i < out->width[0]; i++){
 		out->table[0][i] = i;
 	}
+	i = 0;
 	while(i + 1 < out->height){
 		populate(out, i, i+1);
 		
-		i += 2;
+		i++;
 	}
 	
 	return out;
@@ -57,11 +60,53 @@ void populate(RQTable* rqt, int r1, int r2) {
 
 	for(i = 0; i < rqt->width[r1]; i += 2){
 		index1 = rqt->table[r1][i];
-		index2 = rqt->table[r1][i + 1];
 		
-		rqt->table[r2][j] = (rqt->orig_list[index1] < rqt->orig_list[index2] ? index1 : index2);
+		if(i + 1 < rqt->width[r1]){
+			index2 = rqt->table[r1][i + 1];
+			rqt->table[r2][j] = (rqt->orig_list[index1] < rqt->orig_list[index2] ? index1 : index2);
+		} else {
+			rqt->table[r2][j] = index1;
+		}
+		
 		j++;
 	}
+}
+
+
+/* Displays information about the table */
+void print_table(RQTable* rqt) {
+	int i = 0;
+	int j = 0;
+	
+	printf("RQTable {\n");
+	printf("\t'mode': %d\n", rqt->mode);
+	printf("\t'height': %d\n", rqt->height);
+	
+	printf("\t'orig_list': [");
+	for(i = 0; i < rqt->width[0]; i++){
+		if(i + 1 == rqt->width[0]){
+			printf("%d]\n", rqt->orig_list[i]);
+		} else {
+			printf("%d, ", rqt->orig_list[i]);
+		}
+	}
+	
+	printf("\t'table':\n");
+	for(i = 0; i < rqt->height; i++) {
+		for(j = 0; j < rqt->width[i]; j++) {
+			if (rqt->width[i] == 1) {
+				printf("\t\t'%d': [%d]\n", rqt->width[i], rqt->table[i][j]);
+			} else if(j == 0){
+				printf("\t\t'%d': [%d, ", rqt->width[i], rqt->table[i][j]);
+			} else if (j + 1 == rqt->width[i]) {
+				printf("%d]\n", rqt->table[i][j]); 
+			} else {
+				printf("%d, ", rqt->table[i][j]);
+			}
+		}
+	}
+
+	printf("}\n");
 }
 
 
@@ -114,10 +159,10 @@ int rminq(RQTable* rqt, int start, int end) {
 
 
 /* Destroys RQTable */
-void destr_table(RQTable* rqt){
+void destr_table(RQTable* rqt) {
 	int i = 0;
 	
-	for(i = 0; i < rqt->height) {
+	for(i = 0; i < rqt->height; i++) {
 		free(rqt->table[i]);
 	}
 	

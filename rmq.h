@@ -29,6 +29,10 @@ RQTable* rq_table(int* list, int list_len, int mode);
 void populate(RQTable* rqt, int r1, int r2);
 
 
+/* Displays information about the table */
+void print_table(RQTable* rqt);
+
+
 /* Get k in range(start, end) such that A[k] is minimized
  * Constant time using 2 table entries */
 int rminq(RQTable* rqt, int start, int end);
