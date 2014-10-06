@@ -13,7 +13,7 @@ RQTable* rq_table(int* list, int list_len, int mode) {
 	int i = 0;
 	
 	/* Create table */
-	out = (RQTable*)calloc(1, sizeof(RQTable*));
+	out = (RQTable*)calloc(1, sizeof(RQTable));
 	out->mode = mode;
 	out->orig_list = list;
 	
@@ -133,10 +133,14 @@ int rminq(RQTable* rqt, int start, int end) {
 	} else {}
 	
 	/* Find out which row to operate on */
-	row = (int)(log(end - start)/log(2.0)) - 1;
+	row = (int)ceil(log((double)(end - start))/log(2.0));
+	if(row > 0) {
+		row--;
+	}
 	
 	/* Handle simple cases (first row) */
 	if(row == 0){
+		printf("easy case\n");
 		if(end - start == 1){
 			return (rqt->orig_list[start] <= rqt->orig_list[end] ? start : end);
 		} else {
@@ -144,11 +148,21 @@ int rminq(RQTable* rqt, int start, int end) {
 		}
 	} else {
 		/* Floor the log of the indices to find which elements to check */
-		s = (int)floor(log((double)start)/log(2.0));
+		if(start != 0){
+			s = (int)floor(log((double)start)/log(2.0));
+		}
 		e = (int)floor(log((double)end)/log(2.0));
 		
-		index1 = rqt->table[row][s];
-		index2 = rqt->table[row][e];
+		if(s > rqt->width[row]) {
+			index1 = rqt->table[row - 1][s];
+		} else {
+			index1 = rqt->table[row][s];
+		}
+		if(e > rqt->width[row]){
+			index2 = rqt->table[row - 1][e];
+		} else {
+			index2 = rqt->table[row][e];
+		}
 		
 		return (rqt->orig_list[index1] <= rqt->orig_list[index2] ? index1 : index2);
 	}

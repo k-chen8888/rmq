@@ -7,18 +7,38 @@
 #include "rmq.h"
 
 
+void test(RQTable* rqt, int start, int end);
+
+
+void test(RQTable* rqt, int start, int end){
+	int out = 0;
+	clock_t begin, done;
+	
+	begin = clock();
+	out = rminq(rqt, start, end);
+	done = clock();
+	
+	if (out > -1) {
+		printf("Found the minimum A[%d] = %d in range(%d, %d) in %f seconds\n", out, rqt->orig_list[out], start, end, (double)(done - begin) / CLOCKS_PER_SEC);
+	} else {
+		printf("Invalid query on range(%d, %d)\n", start, end);
+	}
+}
+
+
 int main(int argc, char** argv){
 	
 	int arr_len = 0;
 	int* arr = NULL;
-	int out = 0;
 	RQTable* rqt = NULL;
 	FILE* fp = NULL;
 	int c = 0, i = 0;
 	char buffer[16];
 	
-	clock_t begin, end;
+	clock_t begin, done;
 	
+	int q1 = 0;
+	int q2 = 0;
 	
 	/* Exit if no file to process or too many arguments */
 	if(argc > 3) {
@@ -61,6 +81,7 @@ int main(int argc, char** argv){
 	while(c != EOF) {
 		switch(c){
 			case (int)'\n': /* \n */
+				buffer[i] = '\0';
 				arr[arr_len] = atoi(buffer);
 				
 				memset(buffer, 0, 16);
@@ -89,20 +110,52 @@ int main(int argc, char** argv){
 	/* Build RQTable and display it */
 	begin = clock();
 	rqt = rq_table(arr, arr_len, T_MIN);
-	end = clock();
-	printf("Generated table in %f seconds\n", (double)(end - begin) / CLOCKS_PER_SEC);
+	done = clock();
+	printf("Generated table in %f seconds\n", (double)(done - begin) / CLOCKS_PER_SEC);
 	print_table(rqt);
 	
 	/* Make some queries and time them */
-	begin = clock();
-	out = max_range(arr, arr_len);
-	end = clock();
-	printf("Maximum subvector in range (%d, %d) found in %f seconds\n", out[0], out[1], (double)(end - begin) / CLOCKS_PER_SEC);
+	q1 = 2;
+	q2 = 9;
+	test(rqt, q1, q2);
+	
+	q1 = 2;
+	q2 = 4;
+	test(rqt, q1, q2);
 
+	q1 = 0;
+	q2 = 25;
+	test(rqt, q1, q2);
+	
+	q1 = 0;
+	q2 = 24;
+	test(rqt, q1, q2);
+
+	q1 = 7;
+	q2 = 16;
+	test(rqt, q1, q2);
+	
+	q1 = -1;
+	q2 = 12;
+	test(rqt, q1, q2);
+	
+	q1 = 17;
+	q2 = 20;
+	test(rqt, q1, q2);
+	
+	q1 = 15;
+	q2 = 16;
+	test(rqt, q1, q2);
+	
+	q1 = 9;
+	q2 = 23;
+	test(rqt, q1, q2);
+	
+	
 	/* Clean up */
 	fclose(fp);
 	free(arr);
-	free(out);
+	destr_table(rqt);
 	
 	
 	return 0;
