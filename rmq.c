@@ -153,17 +153,15 @@ int rminq(RQTable* rqt, int start, int end) {
 		}
 		e = (int)floor(log((double)end)/log(2.0));
 		
-		if(s > rqt->width[row]) {
-			index1 = rqt->table[row - 1][s];
-		} else {
-			index1 = rqt->table[row][s];
-		}
-		if(e > rqt->width[row]){
-			index2 = rqt->table[row - 1][e];
-		} else {
-			index2 = rqt->table[row][e];
-		}
+		/* Calculate indicies for forwards and backwards by 2^(floor(\log(end - start))) */
+		index1 = rqt->table[row][(int)((start + row)/pow(2.0, (double)row))];
+		index2 = rqt->table[row][(int)((end - row)/pow(2.0, (double)row))];
 		
+		/* Calculate indices that make it to the next round of comparisons */
+		index1 = (rqt->orig_list[start] <= rqt->orig_list[index1] ? start : index1);
+		index2 = (rqt->orig_list[index2] <= rqt->orig_list[end] ? index2 : end);
+		
+		/* Get final result */
 		return (rqt->orig_list[index1] <= rqt->orig_list[index2] ? index1 : index2);
 	}
 	

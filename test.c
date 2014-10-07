@@ -41,10 +41,10 @@ int main(int argc, char** argv){
 	int q2 = 0;
 	
 	/* Exit if no file to process or too many arguments */
-	if(argc > 3) {
+	if(argc > 2) {
 		printf("Too many arguments\n");
 		return 1;
-	} else if(argc < 3) {	
+	} else if(argc < 2) {	
 		printf("Not enough arguments\n");
 		return 1;
 	}
